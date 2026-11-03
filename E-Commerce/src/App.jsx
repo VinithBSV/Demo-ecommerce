@@ -1,8 +1,9 @@
+import { useState } from "react";
 import { Link, Route, Routes } from "react-router-dom";
 import "./App.css";
-import SignupForm from "./components/SignupForm";
+
 function Navbar() {
-  turn(
+  return (
     <header
       style={{
         padding: "1rem 1.5rem",
@@ -12,45 +13,59 @@ function Navbar() {
         justifyContent: "space-between",
       }}
     >
-      <nav style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
+      <nav style={{ display: "flex", gap: "1rem" }}>
         <Link to="/">Home</Link>
         <Link to="/profile">Profile</Link>
       </nav>
+
       <div>
         <Link to="/login">Login</Link>
       </div>
-    </header>,
+    </header>
   );
 }
-function HomePage() {
+
+function HomePage({ user }) {
   return (
     <div style={{ padding: "0 1.5rem" }}>
       <h1>Home</h1>
-
-      <p>You are not logged in.Go to login page to login</p>
+      <p>
+        {user.isAuth
+          ? `Welcome, ${user.name}!`
+          : "You are not logged in. Go to login page to login."}
+      </p>
     </div>
   );
 }
-function ProfilePage() {
+
+function ProfilePage({ user }) {
   return (
     <div style={{ padding: "0 1.5rem" }}>
       <h1>Profile</h1>
-      <p>Name: [name will go here]</p>
-      <p>Here you could show more content of the user infrom the context.</p>
+      <p>Name: {user.isAuth ? user.name : "Not logged in"}</p>
+      <p>Here you can show more user information.</p>
     </div>
   );
 }
-function LoginPage() {
-  const [name, setName] = React.useState("");
+
+function LoginPage({ user, setUser }) {
+  const [name, setName] = useState("");
+
   function handleSubmit(e) {
     e.preventDefault();
+
     if (!name.trim()) return;
-    setUser({ name: name, isAuth: true });
+
+    setUser({
+      name: name,
+      isAuth: true,
+    });
   }
 
   return (
     <div style={{ padding: "0 1.5rem" }}>
       <h1>Login</h1>
+
       <form onSubmit={handleSubmit} style={{ marginTop: "1rem" }}>
         <label>
           Name
@@ -62,27 +77,43 @@ function LoginPage() {
             style={{ marginLeft: "0.5rem" }}
           />
         </label>
+
         <button type="submit" style={{ marginLeft: "0.5rem" }}>
           Log in
         </button>
       </form>
-      {user.isAuth && <p>User Logged In</p>}
+
+      {user.isAuth && <p>User Logged In: {user.name}</p>}
     </div>
   );
 }
+
 export default function App() {
+  const [user, setUser] = useState({
+    name: "",
+    isAuth: false,
+  });
+
   return (
     <div>
       <Navbar />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route
-          path="*"
-          element={<h1 style={{ padding: "0 1.5rem" }}>Not Found</h1>}
-        ></Route>
-      </Routes>
+      <AuthContext.Provider>
+        <Routes>
+          <Route path="/" element={<HomePage user={user} />} />
+
+          <Route path="/profile" element={<ProfilePage user={user} />} />
+
+          <Route
+            path="/login"
+            element={<LoginPage user={user} setUser={setUser} />}
+          />
+
+          <Route
+            path="*"
+            element={<h1 style={{ padding: "0 1.5rem" }}>Not Found</h1>}
+          />
+        </Routes>
+      </AuthContext.Provider>
     </div>
   );
 }
